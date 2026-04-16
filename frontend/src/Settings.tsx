@@ -2,7 +2,7 @@ import { apiPath } from "./api";
 import React, { useState, useEffect, useContext } from 'react';
 import { useSettings, ReadingFormat } from './SettingsContext';
 import { AuthContext } from './Auth';
-import { Settings as SettingsIcon, User, Mail, Lock, Shield, Trash2, LogOut, CheckCircle, AlertCircle } from 'lucide-react';
+import { Settings as SettingsIcon, User, Mail, Lock, Trash2, LogOut, CheckCircle, AlertCircle } from 'lucide-react';
 
 const FORMAT_OPTIONS: { value: ReadingFormat; label: string; example: string }[] = [
     { value: 'hiragana', label: 'Hiragana', example: 'ひらがな' },

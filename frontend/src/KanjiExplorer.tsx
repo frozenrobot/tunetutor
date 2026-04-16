@@ -1,5 +1,5 @@
 import { apiPath } from "./api";
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Auth';
 import { ArrowLeft, Music, Bookmark, ChevronRight } from 'lucide-react';

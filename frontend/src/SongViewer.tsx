@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from './Auth';
 import { useSettings, hiraganaToKatakana, katakanaToHiragana, kanaToRomaji } from './SettingsContext';
-import { BrainCircuit, ArrowLeft, ExternalLink, CheckCircle, CheckCheck, Lightbulb, RefreshCw, ChevronRight, ChevronDown, MessageSquare, X } from 'lucide-react';
+import { BrainCircuit, ArrowLeft, CheckCircle, CheckCheck, Lightbulb, RefreshCw, ChevronRight, X } from 'lucide-react';
 
 export const SongViewer = () => {
     const { id } = useParams();
@@ -21,8 +21,6 @@ export const SongViewer = () => {
     const [loading, setLoading] = useState(true);
     const [songData, setSongData] = useState<any>(null);
     const [selectedKanji, setSelectedKanji] = useState<any>(null);
-    const [grammarExpl, setGrammarExpl] = useState<string>('');
-    const [isGenerating] = useState(false);
     const [seenLines, setSeenLines] = useState<number[]>([]);
 
     // Chat UI State
@@ -58,6 +56,7 @@ export const SongViewer = () => {
 
     // YouTube Player Refs
     const playerRef = useRef<any>(null);
+    const [activeLineIdx, setActiveLineIdx] = useState<number | null>(null);
 
     // Ref for the container to handle scrolling
     const scrollContainerRef = useRef<HTMLDivElement>(null);

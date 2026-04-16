@@ -1,9 +1,9 @@
 import { apiPath } from "./api";
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Auth';
 import { useSettings, kanaToRomaji, katakanaToHiragana, hiraganaToKatakana } from './SettingsContext';
-import { RotateCcw, CheckCircle, Zap, Eye, EyeOff, ChevronDown, ChevronUp, Music, Play, Search, Filter, LayoutGrid, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
+import { RotateCcw, CheckCircle, Zap, Eye, EyeOff, Music, Search, Filter, LayoutGrid, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 
 interface FlashCard {
     word_id: number;
