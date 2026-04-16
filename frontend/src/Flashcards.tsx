@@ -51,7 +51,7 @@ export const FlashcardsArea = () => {
     const [flipped, setFlipped] = useState(false);
     const [reviewing, setReviewing] = useState(false);
     const [reviewedCount, setReviewedCount] = useState(0);
-    const [frontReadingMode, setFrontReadingMode] = useState<'none' | 'hiragana' | 'romaji'>('none');
+    const [showFrontReading, setShowFrontReading] = useState(false);
     const [contexts, setContexts] = useState<any[]>([]);
     const [showContexts, setShowContexts] = useState(false);
     const [sessionResults, setSessionResults] = useState<{word_id: number, grade: number}[]>([]);
@@ -524,15 +524,14 @@ export const FlashcardsArea = () => {
                             style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', cursor: 'pointer', zIndex: 10, padding: '0.6rem', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', transition: 'all 0.2s' }}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                const nextMode: ('none' | 'hiragana' | 'romaji') = frontReadingMode === 'none' ? 'hiragana' : frontReadingMode === 'hiragana' ? 'romaji' : 'none';
-                                setFrontReadingMode(nextMode);
+                                setShowFrontReading(!showFrontReading);
                             }}
                         >
-                            {frontReadingMode === 'none' ? <EyeOff size={20} /> : <Eye size={20} />}
+                            {!showFrontReading ? <EyeOff size={20} /> : <Eye size={20} />}
                         </div>
-                        {frontReadingMode !== 'none' && (
+                        {showFrontReading && (
                             <span style={{ fontSize: '1.4rem', color: 'var(--brand-primary)', marginBottom: '1.5rem', fontWeight: 500 }}>
-                                {frontReadingMode === 'romaji' ? kanaToRomaji(card.reading) : katakanaToHiragana(card.reading)}
+                                {readingFormat === 'romaji' ? kanaToRomaji(card.reading) : katakanaToHiragana(card.reading)}
                             </span>
                         )}
                         <h1 style={{ fontSize: '5rem', lineHeight: 1, marginBottom: '1rem' }}>{card.surface}</h1>

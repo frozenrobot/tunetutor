@@ -559,6 +559,7 @@ export const SongViewer = () => {
                 </div>
 
                 {songData.parsed_lyrics && songData.parsed_lyrics.map((line: any[], i: number) => {
+                    const isEmptyLine = line.length === 0;
                     const literalTranslation = line.map(t => t.meaning).filter(Boolean).join(" • ");
                     const aiTranslation = (songData.english_lines && songData.english_lines[i])
                         ? songData.english_lines[i].trim()
@@ -573,62 +574,65 @@ export const SongViewer = () => {
                             id={`line-${i}`}
                             className="lyric-line-wrapper"
                             style={{
-                                marginBottom: showTranslation ? '1rem' : '0',
-                                padding: '1rem',
+                                marginBottom: isEmptyLine ? '0.5rem' : (showTranslation ? '1rem' : '0'),
+                                padding: isEmptyLine ? '0.25rem 1rem' : '1rem',
                                 paddingLeft: '3.5rem',
                                 borderRadius: '12px',
                                 transition: 'all 0.3s ease',
                                 border: isSeen ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent',
                                 background: isSeen ? 'rgba(16, 185, 129, 0.03)' : 'transparent',
                                 position: 'relative',
-                                cursor: lineHasSavedChat(i) ? 'pointer' : 'default'
+                                cursor: (!isEmptyLine && lineHasSavedChat(i)) ? 'pointer' : 'default',
+                                minHeight: isEmptyLine ? '1rem' : 'auto'
                             }}
-                            onClick={() => focusLine(i)}
+                            onClick={() => !isEmptyLine && focusLine(i)}
                         >
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    left: '1rem',
-                                    top: '1.25rem',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.75rem',
-                                    alignItems: 'center'
-                                }}
-                            >
+                            {!isEmptyLine && (
                                 <div
                                     style={{
-                                        cursor: isSeen ? 'default' : 'pointer',
-                                        transition: 'all 0.2s',
-                                        opacity: isSeen ? 1 : 0.2,
+                                        position: 'absolute',
+                                        left: '1rem',
+                                        top: '1.25rem',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.75rem',
+                                        alignItems: 'center'
                                     }}
-                                    onClick={() => acknowledgeLine(i)}
-                                    title={isSeen ? "Acknowledged" : "Click to capture vocabulary"}
-                                    className="check-gutter"
                                 >
-                                    <CheckCircle
-                                        size={20}
-                                        color={isSeen ? "var(--success)" : "var(--text-muted)"}
-                                        fill={isSeen ? "rgba(16, 185, 129, 0.1)" : "none"}
-                                    />
-                                </div>
+                                    <div
+                                        style={{
+                                            cursor: isSeen ? 'default' : 'pointer',
+                                            transition: 'all 0.2s',
+                                            opacity: isSeen ? 1 : 0.2,
+                                        }}
+                                        onClick={() => acknowledgeLine(i)}
+                                        title={isSeen ? "Acknowledged" : "Click to capture vocabulary"}
+                                        className="check-gutter"
+                                    >
+                                        <CheckCircle
+                                            size={20}
+                                            color={isSeen ? "var(--success)" : "var(--text-muted)"}
+                                            fill={isSeen ? "rgba(16, 185, 129, 0.1)" : "none"}
+                                        />
+                                    </div>
 
-                                <div
-                                    style={{
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        opacity: activeLineChatIdx === i ? 1 : (lineHasSavedChat(i) ? 0.8 : 0.4),
-                                        transform: activeLineChatIdx === i ? 'scale(1.1)' : 'none'
-                                    }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        requestChat(i);
-                                    }}
-                                    title={lineHasSavedChat(i) ? "Resume saved AI chat" : "AI Explain Line"}
-                                >
-                                    <Lightbulb size={20} color={(activeLineChatIdx === i && (isMobile ? isChatDrawerOpen : true)) ? "var(--brand-primary)" : (lineHasSavedChat(i) ? "#facc15" : "var(--text-muted)")} />
+                                    <div
+                                        style={{
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            opacity: activeLineChatIdx === i ? 1 : (lineHasSavedChat(i) ? 0.8 : 0.4),
+                                            transform: activeLineChatIdx === i ? 'scale(1.1)' : 'none'
+                                        }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            requestChat(i);
+                                        }}
+                                        title={lineHasSavedChat(i) ? "Resume saved AI chat" : "AI Explain Line"}
+                                    >
+                                        <Lightbulb size={20} color={(activeLineChatIdx === i && (isMobile ? isChatDrawerOpen : true)) ? "var(--brand-primary)" : (lineHasSavedChat(i) ? "#facc15" : "var(--text-muted)")} />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             <p className="lyric-line" style={{ lineHeight: showKana ? '2.5' : '1.8', margin: 0, marginLeft: '0.5rem' }}>
                                 {line.map((token: any, j: number) => {
@@ -706,7 +710,7 @@ export const SongViewer = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
                             <div>
                                 <h1 style={{ fontSize: '4rem', margin: '0 0 0.5rem 0' }} className="title-gradient">{selectedKanji.surface}</h1>
-                                <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>{selectedKanji.reading} • {selectedKanji.meaning}</p>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>{getReadingText(selectedKanji.kana || selectedKanji.reading)} • {selectedKanji.meaning}</p>
                             </div>
                             <div style={{ background: 'rgba(99, 102, 241, 0.2)', padding: '0.5rem 1rem', borderRadius: '12px', color: 'var(--brand-primary)', fontWeight: 600 }}>
                                 {translatePos(selectedKanji.pos)}
@@ -752,6 +756,7 @@ export const SongViewer = () => {
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                                         {relatedWords.map((rw: any) => (
                                                             <div key={rw.id} className="glass-panel" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', background: 'rgba(99, 102, 241, 0.15)', borderColor: 'var(--brand-primary)' }}>
+                                                                <div style={{ fontSize: '0.7rem', color: 'var(--brand-secondary)', fontWeight: 600, marginBottom: '0.1rem' }}>{getReadingText(rw.reading)}</div>
                                                                 <span style={{ fontWeight: 600 }}>{rw.dictionary_form}</span>
                                                                 <span style={{ color: 'var(--text-secondary)', marginLeft: '0.4rem', fontSize: '0.75rem' }}>({rw.meaning.split(',')[0]})</span>
                                                             </div>

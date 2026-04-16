@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
-export type ReadingFormat = 'hiragana' | 'katakana' | 'romaji';
+export type ReadingFormat = 'hiragana' | 'romaji';
 
 interface SettingsContextType {
     readingFormat: ReadingFormat;

@@ -6,7 +6,6 @@ import { Settings as SettingsIcon, User, Mail, Lock, Trash2, LogOut, CheckCircle
 
 const FORMAT_OPTIONS: { value: ReadingFormat; label: string; example: string }[] = [
     { value: 'hiragana', label: 'Hiragana', example: 'ひらがな' },
-    { value: 'katakana', label: 'Katakana', example: 'カタカナ' },
     { value: 'romaji', label: 'Romaji', example: 'romaji' },
 ];
 

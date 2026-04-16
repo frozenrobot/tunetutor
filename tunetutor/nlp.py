@@ -26,6 +26,7 @@ def parse_lyrics(text: str, db: Session) -> List[Dict]:
     
     for line in lines:
         if not line.strip():
+            parsed_lines.append([])
             continue
             
         words = tagger(line)
