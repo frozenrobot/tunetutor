@@ -10,7 +10,13 @@ from .database import get_db
 from .models import User
 
 # In a real app, load this from env
-SECRET_KEY = os.getenv("SECRET_KEY", "tunetutor-super-secret-local-key")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    # Fallback for local dev, but warn/fail in production if needed
+    SECRET_KEY = "tunetutor-super-secret-local-key"
+    if os.getenv("RENDER"): # Simple check for Render environment
+        print("WARNING: SECRET_KEY not set in production environment!")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 week
 

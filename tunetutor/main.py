@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
+from sqlalchemy.exc import IntegrityError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -62,7 +63,8 @@ class PasswordChange(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Backend API is running. Please access the Lyvo React UI at http://localhost:5173"}
+    from .email_utils import FRONTEND_URL
+    return {"message": f"Lyvo Backend API is running. Access the UI at {FRONTEND_URL}"}
 
 # --- Auth Endpoints ---
 
@@ -82,9 +84,13 @@ def register(user: UserCreate, background_tasks: BackgroundTasks, db: Session = 
         is_verified=False,
         verification_token=verification_token
     )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Username or Email already exists")
     
     # Send verification email in background
     background_tasks.add_task(send_verification_email, new_user.email, verification_token)
