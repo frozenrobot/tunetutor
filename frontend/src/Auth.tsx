@@ -155,8 +155,14 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
           setMessage("Password reset successful. You can now login.");
           setMode('login');
         } else {
-          const data = await res.json();
-          setError(data.detail || "Reset failed. Link may be expired.");
+          let detail = "Reset failed. Link may be expired.";
+          try {
+            const data = await res.json();
+            detail = data.detail || detail;
+          } catch (e) {
+            detail = `Server error (${res.status}). Please try again later.`;
+          }
+          setError(detail);
         }
       }
     } finally {
@@ -181,11 +187,38 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
       } else {
         setError(data.detail || "Failed to resend verification link.");
       }
-    } catch (e) {
-      setError("Network error. Please try again later.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const getPasswordRequirements = (pass: string) => {
+    return [
+      { label: "At least 8 characters", met: pass.length >= 8 },
+      { label: "At least one uppercase letter", met: /[A-Z]/.test(pass) },
+      { label: "At least one lowercase letter", met: /[a-z]/.test(pass) },
+      { label: "At least one number", met: /\d/.test(pass) },
+      { label: "At least one special character (@$!%*#?&)", met: /[@$!%*#?&]/.test(pass) },
+    ];
+  };
+
+  const isPasswordStrong = (pass: string) => {
+    return getPasswordRequirements(pass).every(req => req.met);
+  };
+
+  const PasswordHints = ({ pass }: { pass: string }) => {
+    if (!pass) return null;
+    const reqs = getPasswordRequirements(pass);
+    return (
+      <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        {reqs.map((req, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: req.met ? 'var(--success)' : 'var(--text-muted)' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: req.met ? 'var(--success)' : 'var(--text-muted)', opacity: 0.6 }} />
+            {req.label}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const renderContent = () => {
@@ -214,15 +247,18 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="glass-input"
           />
+          <PasswordHints pass={password} />
           <input
             type="password"
             placeholder="Confirm New Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
+            className="glass-input"
           />
-          <button type="submit" className="btn" disabled={loading}>
+          <button type="submit" className="btn" disabled={loading || !isPasswordStrong(password)}>
             {loading ? "Updating..." : "Reset Password"}
           </button>
         </form>
@@ -300,6 +336,8 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
           />
         </div>
 
+        {mode === 'register' && <PasswordHints pass={password} />}
+
         {mode === 'login' && (
           <div style={{ textAlign: 'right' }}>
             <span
@@ -313,7 +351,7 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
           </div>
         )}
 
-        <button type="submit" className="btn" style={{ marginTop: '0.5rem' }} disabled={loading}>
+        <button type="submit" className="btn" style={{ marginTop: '0.5rem' }} disabled={loading || (mode === 'register' && !isPasswordStrong(password))}>
           {loading ? "Please wait..." : (mode === 'login' ? "Login" : "Sign Up")}
         </button>
 

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 from .database import engine, Base, get_db
 from .models import User, Song, Vocabulary, Kanji, UserWordState, UserKanjiState, UserSongProgress, SongStatus, WordStatus, song_vocabulary, SavedChat
-from .auth import verify_password, get_password_hash, create_access_token, get_current_user
+from .auth import verify_password, get_password_hash, create_access_token, get_current_user, validate_password
 from .nlp import parse_lyrics
 from .ai import generate_chat_explanation, translate_lyrics_block
 from .email_utils import send_verification_email, send_reset_password_email, send_email_change_verification
@@ -77,6 +77,7 @@ def register(user: UserCreate, background_tasks: BackgroundTasks, db: Session = 
     if db_user:
         raise HTTPException(status_code=400, detail="Username or Email already registered")
     
+    validate_password(user.password)
     hashed_password = get_password_hash(user.password)
     verification_token = secrets.token_urlsafe(32)
     
@@ -180,15 +181,25 @@ def forgot_password(request: ForgotPasswordRequest, background_tasks: Background
 
 @app.post("/api/auth/reset-password")
 def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.reset_token == request.token).first()
-    if not user or not user.reset_token_expires or user.reset_token_expires < datetime.utcnow():
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-    
-    user.hashed_password = get_password_hash(request.new_password)
-    user.reset_token = None
-    user.reset_token_expires = None
-    db.commit()
-    return {"message": "Password reset successfully"}
+    try:
+        user = db.query(User).filter(User.reset_token == request.token).first()
+        if not user or not user.reset_token_expires or user.reset_token_expires < datetime.utcnow():
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        
+        validate_password(request.new_password)
+        user.hashed_password = get_password_hash(request.new_password)
+        user.reset_token = None
+        user.reset_token_expires = None
+        db.commit()
+        return {"message": "Password reset successfully"}
+    except HTTPException as he:
+        # Re-raise HTTP exceptions (like 400)
+        raise he
+    except Exception as e:
+        print(f"CRITICAL ERROR in reset_password: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.get("/api/user/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
@@ -227,6 +238,7 @@ def change_password(req: PasswordChange, db: Session = Depends(get_db), current_
     if not verify_password(req.current_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect current password")
     
+    validate_password(req.new_password)
     current_user.hashed_password = get_password_hash(req.new_password)
     db.commit()
     return {"message": "Password updated successfully"}
