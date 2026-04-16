@@ -1,4 +1,4 @@
-import { apiPath } from "./api";
+import { authFetch } from "./api";
 import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Auth';
@@ -7,7 +7,7 @@ import { ArrowLeft, Music, Bookmark, ChevronRight } from 'lucide-react';
 export const KanjiExplorer = () => {
     const { character } = useParams();
     const navigate = useNavigate();
-    const { token, setToken } = useContext(AuthContext);
+    const { token } = useContext(AuthContext);
 
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
@@ -22,17 +22,8 @@ export const KanjiExplorer = () => {
     useEffect(() => {
         if (!token || !character) return;
         setLoading(true);
-        fetch(apiPath(`/api/kanji/${character}/words`), {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(r => {
-            if (r.status === 401) {
-                setToken(null);
-                localStorage.removeItem("lyvo_token");
-                throw new Error("Unauthorized");
-            }
-            return r.json();
-        })
+        authFetch(`/api/kanji/${character}/words`, token)
+        .then(r => r.json())
         .then(data => {
             setData(data);
             setLoading(false);
@@ -41,7 +32,7 @@ export const KanjiExplorer = () => {
             console.error(e);
             setLoading(false);
         });
-    }, [character, token, setToken]);
+    }, [character, token]);
 
     if (loading) return <div className="page-enter" style={{padding: '3rem', textAlign: 'center'}}>Loading contextual data for {character}...</div>;
     if (!data) return <div style={{padding: '3rem'}}>Failed to load Kanji data.</div>;

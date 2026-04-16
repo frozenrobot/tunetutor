@@ -1,27 +1,18 @@
-import { apiPath } from "./api";
+import { authFetch } from "./api";
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from './Auth';
 import { Zap, Trophy, HelpCircle } from 'lucide-react';
 
 export const StatsDashboard = () => {
-    const { token, setToken } = useContext(AuthContext);
+    const { token } = useContext(AuthContext);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!token) return;
         setLoading(true);
-        fetch(apiPath('/api/stats'), {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(r => {
-            if (r.status === 401) {
-                setToken(null);
-                localStorage.removeItem("lyvo_token");
-                throw new Error("Unauthorized");
-            }
-            return r.json();
-        })
+        authFetch('/api/stats', token)
+        .then(r => r.json())
         .then(data => {
             setStats(data);
             setLoading(false);

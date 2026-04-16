@@ -9,7 +9,7 @@ import { SettingsPage } from './Settings';
 import { VocabularyBank } from './VocabularyBank';
 import { KanjiExplorer } from './KanjiExplorer';
 import { SettingsProvider } from './SettingsContext';
-import { apiPath } from './api';
+import { authFetch } from './api';
 import './index.css';
 
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }: any) => {
@@ -55,9 +55,7 @@ const Home = () => {
   const fetchSongs = () => {
     if (!token) return;
     setLoading(true);
-    fetch(apiPath('/api/songs'), {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    authFetch('/api/songs', token)
       .then(r => r.json())
       .then(data => {
         setSongs(data);
@@ -76,9 +74,8 @@ const Home = () => {
   const removeFromLibrary = async (songId: number) => {
     if (!token) return;
     try {
-      const res = await fetch(apiPath(`/api/songs/${songId}/library`), {
+      const res = await authFetch(`/api/songs/${songId}/library`, token, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         fetchSongs();

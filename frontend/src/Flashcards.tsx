@@ -1,4 +1,4 @@
-import { apiPath } from "./api";
+import { authFetch } from "./api";
 import { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Auth';
@@ -25,7 +25,7 @@ interface Song {
 }
 
 export const FlashcardsArea = () => {
-    const { token, setToken } = useContext(AuthContext);
+    const { token } = useContext(AuthContext);
     const { readingFormat } = useSettings();
     const location = useLocation();
     const navigate = useNavigate();
@@ -90,7 +90,7 @@ export const FlashcardsArea = () => {
     useEffect(() => {
         if (!token) return;
         setLoading(true);
-        fetch(apiPath('/api/songs'), { headers: { 'Authorization': `Bearer ${token}` } })
+        authFetch('/api/songs', token)
         .then(r => r.json())
         .then(songsData => {
             setSongs(songsData || []);
@@ -118,22 +118,13 @@ export const FlashcardsArea = () => {
         if (selectedSongs.length === 0) return;
 
         setStartingSession(true);
-        let url = apiPath(`/api/flashcards/due?limit=${sessionLimit}&include_seen=${includeSeen}&include_learned=${includeLearned}`);
+        let path = `/api/flashcards/due?limit=${sessionLimit}&include_seen=${includeSeen}&include_learned=${includeLearned}`;
         if (selectedSongs.length > 0) {
-            url += `&song_ids=${selectedSongs.join(',')}`;
+            path += `&song_ids=${selectedSongs.join(',')}`;
         }
 
-        fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(r => {
-            if (r.status === 401) {
-                setToken(null);
-                localStorage.removeItem("lyvo_token");
-                throw new Error("Unauthorized");
-            }
-            return r.json();
-        })
+        authFetch(path, token)
+        .then(r => r.json())
         .then(data => {
             setCards(data.cards || []);
             setSessionResults([]);
@@ -169,9 +160,9 @@ export const FlashcardsArea = () => {
         });
 
         try {
-            await fetch(apiPath('/api/flashcards/review'), {
+            await authFetch('/api/flashcards/review', token, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ word_id: card.word_id, grade })
             });
         } catch (e) {
@@ -197,9 +188,7 @@ export const FlashcardsArea = () => {
     const fetchContexts = async (wordId: number) => {
         if (contexts.length > 0) return;
         try {
-            const r = await fetch(apiPath(`/api/vocabulary/${wordId}/contexts`), {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const r = await authFetch(`/api/vocabulary/${wordId}/contexts`, token);
             const data = await r.json();
             setContexts(data || []);
         } catch (e) {

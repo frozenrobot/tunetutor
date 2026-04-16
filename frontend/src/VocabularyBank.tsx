@@ -1,11 +1,11 @@
-import { apiPath } from "./api";
+import { authFetch } from "./api";
 import { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Auth';
 import { ArrowLeft, Search, Music, BookOpen } from 'lucide-react';
 
 export const VocabularyBank = () => {
-    const { token, setToken } = useContext(AuthContext);
+    const { token } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
     
@@ -32,17 +32,8 @@ export const VocabularyBank = () => {
         params.append('include_seen', String(initialSeen));
         params.append('include_learned', String(initialLearned));
 
-        fetch(apiPath(`/api/vocabulary/bank?${params.toString()}`), {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(r => {
-            if (r.status === 401) {
-                setToken(null);
-                localStorage.removeItem("lyvo_token");
-                throw new Error("Unauthorized");
-            }
-            return r.json();
-        })
+        authFetch(`/api/vocabulary/bank?${params.toString()}`, token)
+        .then(r => r.json())
         .then(data => {
             setWords(data.words || []);
             setLoading(false);
@@ -51,7 +42,7 @@ export const VocabularyBank = () => {
             console.error(e);
             setLoading(false);
         });
-    }, [token, setToken]);
+    }, [token]);
 
     const filteredWords = words.filter(w => 
         w.surface.toLowerCase().includes(searchTerm.toLowerCase()) ||

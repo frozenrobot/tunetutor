@@ -1,4 +1,4 @@
-import { apiPath } from "./api";
+import { authFetch } from "./api";
 import React, { useState, useEffect, useContext } from 'react';
 import { useSettings, ReadingFormat } from './SettingsContext';
 import { AuthContext } from './Auth';
@@ -31,9 +31,7 @@ export const SettingsPage = () => {
 
     const fetchUser = async () => {
         try {
-            const res = await fetch(apiPath("/api/user/me"), {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await authFetch("/api/user/me", token);
             const data = await res.json();
             if (res.ok) {
                 setUserData(data);
@@ -51,12 +49,9 @@ export const SettingsPage = () => {
         setSuccess("");
         setLoading(true);
         try {
-            const res = await fetch(apiPath("/api/user/me"), {
+            const res = await authFetch("/api/user/me", token, {
                 method: "PUT",
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: editName, email: editEmail })
             });
             const data = await res.json();
@@ -97,12 +92,9 @@ export const SettingsPage = () => {
         }
         setLoading(true);
         try {
-            const res = await fetch(apiPath("/api/user/password"), {
+            const res = await authFetch("/api/user/password", token, {
                 method: "PATCH",
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
             });
             const data = await res.json();
@@ -125,9 +117,8 @@ export const SettingsPage = () => {
         if (!window.confirm("ARE YOU SURE? This will permanently delete your account and all learning progress. This cannot be undone.")) return;
         
         try {
-            const res = await fetch(apiPath("/api/user/me"), {
+            const res = await authFetch("/api/user/me", token, {
                 method: "DELETE",
-                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 setToken(null);

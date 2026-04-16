@@ -1,4 +1,4 @@
-import { apiPath } from "./api";
+import { authFetch } from "./api";
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
@@ -10,7 +10,7 @@ export const SongViewer = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const { token, setToken } = useContext(AuthContext);
+    const { token } = useContext(AuthContext);
 
     // Parse query params for line navigation
     const queryParams = new URLSearchParams(location.search);
@@ -66,17 +66,8 @@ export const SongViewer = () => {
         if (!token) return;
         setLoading(true);
         // Process & fetch
-        fetch(apiPath(`/api/songs/${id}/process`), {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-            .then(r => {
-                if (r.status === 401) {
-                    setToken(null);
-                    localStorage.removeItem("lyvo_token");
-                    throw new Error("Unauthorized");
-                }
-                return r.json();
-            })
+        authFetch(`/api/songs/${id}/process`, token)
+            .then(r => r.json())
             .then(data => {
                 setSongData(data);
                 setSeenLines(data.seen_lines || []);
@@ -88,9 +79,7 @@ export const SongViewer = () => {
             });
 
         // Fetch saved chats specifically for this song
-        fetch(apiPath(`/api/ai/saved_chats?song_id=${id}`), {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
+        authFetch(`/api/ai/saved_chats?song_id=${id}`, token)
             .then(r => r.ok ? r.json() : [])
             .then(data => setSavedChatsForSong(data))
             .catch(e => console.error(e));
@@ -114,12 +103,9 @@ export const SongViewer = () => {
     // Explicit sync — only called with complete history (after AI responds)
     const syncToServer = (savedChatId: number, history: any[]) => {
         if (!token || history.length === 0) return;
-        fetch(apiPath(`/api/ai/saved_chats/${savedChatId}`), {
+        authFetch(`/api/ai/saved_chats/${savedChatId}`, token, {
             method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 line_text: "",
                 history: history
@@ -141,12 +127,9 @@ export const SongViewer = () => {
         if (!token || !songData || activeSavedChatId) return;
         try {
             const lineText = getLineText(lineIdx);
-            const res = await fetch(apiPath(`/api/ai/saved_chats`), {
+            const res = await authFetch(`/api/ai/saved_chats`, token, {
                 method: "POST",
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     song_id: parseInt(id || "0"),
                     song_title: songData.title,
@@ -224,12 +207,9 @@ export const SongViewer = () => {
         }
 
         try {
-            const res = await fetch(apiPath(`/api/ai/chat`), {
+            const res = await authFetch(`/api/ai/chat`, token, {
                 method: "POST",
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     line_context: lineText,
                     history: llmHistory
@@ -256,9 +236,8 @@ export const SongViewer = () => {
         if (!token || activeLineChatIdx === null || !songData) return;
         if (activeSavedChatId) {
             try {
-                await fetch(apiPath(`/api/ai/saved_chats/${activeSavedChatId}`), {
+                await authFetch(`/api/ai/saved_chats/${activeSavedChatId}`, token, {
                     method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 setSavedChatsForSong(prev => prev.filter(c => c.id !== activeSavedChatId));
             } catch (e) { console.error(e); }
@@ -308,9 +287,7 @@ export const SongViewer = () => {
         setActiveKanji(char);
         setIsFetchingWords(true);
         try {
-            const res = await fetch(apiPath(`/api/kanji/${char}/words`), {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await authFetch(`/api/kanji/${char}/words`, token);
             const data = await res.json();
             setRelatedWords(data.words.filter((w: any) => w.status !== 'UNSEEN').slice(0, 5));
         } catch (e) {
@@ -350,9 +327,8 @@ export const SongViewer = () => {
         if (!token || seenLines.includes(idx)) return;
 
         try {
-            const res = await fetch(apiPath(`/api/songs/${id}/acknowledge_line/${idx}`), {
+            const res = await authFetch(`/api/songs/${id}/acknowledge_line/${idx}`, token, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
             setSeenLines(data.seen_lines);
