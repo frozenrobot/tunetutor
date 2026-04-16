@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from './Auth';
-import { useSettings, hiraganaToKatakana, katakanaToHiragana, kanaToRomaji } from './SettingsContext';
+import { useSettings, katakanaToHiragana, kanaToRomaji } from './SettingsContext';
 import { BrainCircuit, ArrowLeft, CheckCircle, CheckCheck, Lightbulb, RefreshCw, ChevronRight, X } from 'lucide-react';
 
 export const SongViewer = () => {
@@ -333,7 +333,6 @@ export const SongViewer = () => {
     const getReadingText = (kana: string): string => {
         if (!kana) return '';
         switch (readingFormat) {
-            case 'katakana': return hiraganaToKatakana(katakanaToHiragana(kana));
             case 'romaji': return kanaToRomaji(kana);
             default: return katakanaToHiragana(kana); // hiragana
         }

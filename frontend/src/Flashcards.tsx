@@ -2,7 +2,7 @@ import { apiPath } from "./api";
 import { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Auth';
-import { useSettings, kanaToRomaji, katakanaToHiragana, hiraganaToKatakana } from './SettingsContext';
+import { useSettings, kanaToRomaji, katakanaToHiragana } from './SettingsContext';
 import { RotateCcw, CheckCircle, Zap, Eye, EyeOff, Music, Search, Filter, LayoutGrid, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 
 interface FlashCard {
@@ -216,7 +216,6 @@ export const FlashcardsArea = () => {
     const getDisplayReading = (reading: string): string => {
         if (!reading) return '';
         switch (readingFormat) {
-            case 'katakana': return hiraganaToKatakana(katakanaToHiragana(reading));
             case 'romaji': return kanaToRomaji(reading);
             default: return katakanaToHiragana(reading);
         }
