@@ -134,35 +134,51 @@ def verify_email_change(verify_token: str, db: Session = Depends(get_db)):
 
 @app.post("/api/auth/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    from sqlalchemy import or_
-    user = db.query(User).filter(or_(User.username == form_data.username, User.email == form_data.username)).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect username or email or password")
-    
-    if not user.is_verified:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email address before logging in.")
-    
-    access_token = create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    try:
+        from sqlalchemy import or_
+        user = db.query(User).filter(or_(User.username == form_data.username, User.email == form_data.username)).first()
+        if not user or not verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(status_code=400, detail="Incorrect username or email or password")
+        
+        if not user.is_verified:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email address before logging in.")
+        
+        access_token = create_access_token(data={"sub": user.username})
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"CRITICAL ERROR in login: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.post("/api/auth/resend-verification")
 def resend_verification(request: ResendVerificationRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    from sqlalchemy import or_
-    user = db.query(User).filter(or_(User.username == request.identity, User.email == request.identity)).first()
-    
-    if not user:
-        # Don't reveal account existência
-        return {"message": "If an account exists, a new verification link has been sent."}
-    
-    if user.is_verified:
-        raise HTTPException(status_code=400, detail="Account already verified")
-    
-    verification_token = secrets.token_urlsafe(32)
-    user.verification_token = verification_token
-    db.commit()
-    
-    background_tasks.add_task(send_verification_email, user.email, verification_token)
-    return {"message": "A new verification link has been sent to your email."}
+    try:
+        from sqlalchemy import or_
+        user = db.query(User).filter(or_(User.username == request.identity, User.email == request.identity)).first()
+        
+        if not user:
+            # Don't reveal account existência
+            return {"message": "If an account exists, a new verification link has been sent."}
+        
+        if user.is_verified:
+            raise HTTPException(status_code=400, detail="Account already verified")
+        
+        verification_token = secrets.token_urlsafe(32)
+        user.verification_token = verification_token
+        db.commit()
+        
+        background_tasks.add_task(send_verification_email, user.email, verification_token)
+        return {"message": "A new verification link has been sent to your email."}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"CRITICAL ERROR in resend_verification: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.post("/api/auth/forgot-password")
 def forgot_password(request: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
@@ -333,13 +349,20 @@ def process_song(song_id: int, db: Session = Depends(get_db), current_user: User
         for line in line_tokens:
             for t in line:
                 if t.get("vocab_id"):
-                    db.execute(
-                        song_vocabulary.insert().prefix_with("OR IGNORE").values(
-                            song_id=song_id, 
-                            vocabulary_id=t["vocab_id"],
-                            surface=t["surface"]
+                    # Check if already linked to avoid duplicates
+                    exists = db.query(song_vocabulary).filter_by(
+                        song_id=song_id, 
+                        vocabulary_id=t["vocab_id"]
+                    ).first()
+                    
+                    if not exists:
+                        db.execute(
+                            song_vocabulary.insert().values(
+                                song_id=song_id, 
+                                vocabulary_id=t["vocab_id"],
+                                surface=t["surface"]
+                            )
                         )
-                    )
         
         prog = UserSongProgress(user_id=current_user.id, song_id=song_id, status=SongStatus.IN_PROGRESS)
         db.add(prog)

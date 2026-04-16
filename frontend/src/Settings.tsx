@@ -31,7 +31,7 @@ export const SettingsPage = () => {
 
     const fetchUser = async () => {
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/user/me", {
+            const res = await fetch(apiPath("/api/user/me"), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -125,7 +125,7 @@ export const SettingsPage = () => {
         if (!window.confirm("ARE YOU SURE? This will permanently delete your account and all learning progress. This cannot be undone.")) return;
         
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/user/me", {
+            const res = await fetch(apiPath("/api/user/me"), {
                 method: "DELETE",
                 headers: { 'Authorization': `Bearer ${token}` }
             });
