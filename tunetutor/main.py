@@ -61,6 +61,9 @@ class PasswordChange(BaseModel):
     current_password: str
     new_password: str
 
+class ResendVerificationRequest(BaseModel):
+    identity: str # Username or Email
+
 @app.get("/")
 def read_root():
     from .email_utils import FRONTEND_URL
@@ -140,6 +143,25 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/api/auth/resend-verification")
+def resend_verification(request: ResendVerificationRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    from sqlalchemy import or_
+    user = db.query(User).filter(or_(User.username == request.identity, User.email == request.identity)).first()
+    
+    if not user:
+        # Don't reveal account existência
+        return {"message": "If an account exists, a new verification link has been sent."}
+    
+    if user.is_verified:
+        raise HTTPException(status_code=400, detail="Account already verified")
+    
+    verification_token = secrets.token_urlsafe(32)
+    user.verification_token = verification_token
+    db.commit()
+    
+    background_tasks.add_task(send_verification_email, user.email, verification_token)
+    return {"message": "A new verification link has been sent to your email."}
 
 @app.post("/api/auth/forgot-password")
 def forgot_password(request: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):

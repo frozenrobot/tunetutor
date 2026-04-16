@@ -16,6 +16,7 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [showResendButton, setShowResendButton] = useState(false);
   const handledRef = React.useRef(false);
 
   // Handle Token Detection (Verify or Reset) on Mount
@@ -88,6 +89,7 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
     e.preventDefault();
     setError("");
     setMessage("");
+    setShowResendButton(false);
     setLoading(true);
 
     try {
@@ -103,6 +105,9 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
         const data = await res.json();
         if (!res.ok) {
           setError(data.detail || "Login failed");
+          if (res.status === 403 && data.detail?.toLowerCase().includes("verify")) {
+            setShowResendButton(true);
+          }
         } else {
           onLogin(data.access_token);
         }
@@ -154,7 +159,29 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
           setError(data.detail || "Reset failed. Link may be expired.");
         }
       }
-    } catch (err) {
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setError("");
+    setMessage("");
+    setLoading(true);
+    try {
+      const res = await fetch(apiPath("/api/auth/resend-verification"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identity: username })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(data.message || "Verification link resent successfully.");
+        setShowResendButton(false);
+      } else {
+        setError(data.detail || "Failed to resend verification link.");
+      }
+    } catch (e) {
       setError("Network error. Please try again later.");
     } finally {
       setLoading(false);
@@ -319,7 +346,26 @@ export const AuthView = ({ onLogin }: { onLogin: (token: string) => void }) => {
             animation: 'shake 0.4s ease-in-out'
           }}>
             <AlertTriangle size={20} color="var(--danger)" />
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{error}</span>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', display: 'block' }}>{error}</span>
+              {showResendButton && (
+                <button 
+                  className="btn btn-outline" 
+                  onClick={handleResendVerification}
+                  style={{ 
+                    marginTop: '0.75rem', 
+                    padding: '0.4rem 0.8rem', 
+                    fontSize: '0.8rem',
+                    borderColor: 'var(--brand-primary)',
+                    color: 'var(--brand-primary)',
+                    width: 'auto'
+                  }}
+                  disabled={loading}
+                >
+                  {loading ? "Sending..." : "Resend Verification Link"}
+                </button>
+              )}
+            </div>
           </div>
         )}
 

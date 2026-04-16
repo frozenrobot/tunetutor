@@ -46,7 +46,7 @@ def send_email(subject: str, recipient: str, body_html: str):
 
 def send_verification_email(email_address: str, token: str):
     subject = "Verify your Lyvo Account"
-    verification_link = f"{FRONTEND_URL}/auth/verify?token={token}"
+    verification_link = f"{FRONTEND_URL}/?verify_token={token}"
     body = f"""
     <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -65,7 +65,7 @@ def send_verification_email(email_address: str, token: str):
 
 def send_reset_password_email(email_address: str, token: str):
     subject = "Reset your Lyvo Password"
-    reset_link = f"{FRONTEND_URL}/auth/reset-password?token={token}"
+    reset_link = f"{FRONTEND_URL}/?reset_token={token}"
     body = f"""
     <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -83,7 +83,7 @@ def send_reset_password_email(email_address: str, token: str):
 
 def send_email_change_verification(new_email: str, token: str):
     subject = "Confirm your Lyvo Email Change"
-    confirm_link = f"{FRONTEND_URL}/auth/verify?token={token}"
+    confirm_link = f"{FRONTEND_URL}/?verify_token={token}"
     body = f"""
     <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
