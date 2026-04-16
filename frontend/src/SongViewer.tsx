@@ -533,29 +533,52 @@ export const SongViewer = () => {
                     </div>
                 </div>
 
-                {songData.parsed_lyrics && songData.parsed_lyrics.map((line: any[], i: number) => {
-                    const isEmptyLine = line.length === 0;
-                    const literalTranslation = line.map(t => t.meaning).filter(Boolean).join(" • ");
-                    const aiTranslation = (songData.english_lines && songData.english_lines[i])
-                        ? songData.english_lines[i].trim()
-                        : "";
+                {(() => {
+                    // Pre-compute index mapping to avoid shifting when backend strips empty lines
+                    let englishIdx = 0;
+                    const syncedEnglishLines: string[] = [];
+                    if (songData.parsed_lyrics && songData.english_lines) {
+                        songData.parsed_lyrics.forEach((line: any[]) => {
+                            if (line.length === 0) {
+                                syncedEnglishLines.push("");
+                            } else {
+                                // Only consume an english line if there's text available and the english line itself isn't completely empty when it shouldn't be
+                                // Move forward in english_lines until we hit a non-empty string, as long as we're expecting text
+                                while(englishIdx < songData.english_lines.length && songData.english_lines[englishIdx].trim() === "") {
+                                    englishIdx++;
+                                }
 
-                    const displayTranslation = aiTranslation || literalTranslation;
-                    const isSeen = seenLines.includes(i);
+                                if (englishIdx < songData.english_lines.length) {
+                                    syncedEnglishLines.push(songData.english_lines[englishIdx].trim());
+                                    englishIdx++;
+                                } else {
+                                    syncedEnglishLines.push("");
+                                }
+                            }
+                        });
+                    }
 
-                    return (
-                        <div
-                            key={i}
-                            id={`line-${i}`}
-                            className="lyric-line-wrapper"
-                            style={{
-                                marginBottom: isEmptyLine ? '0.5rem' : (showTranslation ? '1rem' : '0'),
-                                padding: isEmptyLine ? '0.25rem 1rem' : '1rem',
-                                paddingLeft: '3.5rem',
-                                borderRadius: '12px',
-                                transition: 'all 0.3s ease',
-                                border: isSeen ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent',
-                                background: isSeen ? 'rgba(16, 185, 129, 0.03)' : 'transparent',
+                    return songData.parsed_lyrics && songData.parsed_lyrics.map((line: any[], i: number) => {
+                        const isEmptyLine = line.length === 0;
+                        const literalTranslation = line.map(t => t.meaning).filter(Boolean).join(" • ");
+                        const aiTranslation = syncedEnglishLines[i] || "";
+
+                        const displayTranslation = aiTranslation || literalTranslation;
+                        const isSeen = seenLines.includes(i);
+
+                        return (
+                            <div
+                                key={i}
+                                id={`line-${i}`}
+                                className="lyric-line-wrapper"
+                                style={{
+                                    marginBottom: isEmptyLine ? '0.5rem' : (showTranslation ? '1rem' : '0'),
+                                    padding: isEmptyLine ? '0.25rem 1rem' : '1rem',
+                                    paddingLeft: '3.5rem',
+                                    borderRadius: '12px',
+                                    transition: 'all 0.3s ease',
+                                    border: isSeen ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent',
+                                    background: isSeen ? 'rgba(16, 185, 129, 0.03)' : 'transparent',
                                 position: 'relative',
                                 cursor: (!isEmptyLine && lineHasSavedChat(i)) ? 'pointer' : 'default',
                                 minHeight: isEmptyLine ? '1rem' : 'auto'
@@ -655,7 +678,7 @@ export const SongViewer = () => {
                             )}
                         </div>
                     );
-                })}
+                })})()}
 
                 <div style={{ marginTop: '3rem', borderTop: '1px solid var(--glass-border)', paddingTop: '2rem', textAlign: 'center' }}>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
