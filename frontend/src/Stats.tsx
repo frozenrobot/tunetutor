@@ -1,7 +1,7 @@
 import { apiPath } from "./api";
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from './Auth';
-import { BookOpen, Zap, Trophy, HelpCircle } from 'lucide-react';
+import { Zap, Trophy, HelpCircle } from 'lucide-react';
 
 export const StatsDashboard = () => {
     const { token, setToken } = useContext(AuthContext);

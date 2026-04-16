@@ -22,7 +22,7 @@ export const SongViewer = () => {
     const [songData, setSongData] = useState<any>(null);
     const [selectedKanji, setSelectedKanji] = useState<any>(null);
     const [grammarExpl, setGrammarExpl] = useState<string>('');
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [isGenerating] = useState(false);
     const [seenLines, setSeenLines] = useState<number[]>([]);
 
     // Chat UI State
@@ -56,12 +56,8 @@ export const SongViewer = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // YouTube Player Refs and State
+    // YouTube Player Refs
     const playerRef = useRef<any>(null);
-    const [isPlayerReady, setIsPlayerReady] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [activeLineIdx, setActiveLineIdx] = useState<number | null>(null);
-    const [metadata, setMetadata] = useState<any[]>([]);
 
     // Ref for the container to handle scrolling
     const scrollContainerRef = useRef<HTMLDivElement>(null);

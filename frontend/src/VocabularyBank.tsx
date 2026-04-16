@@ -1,9 +1,8 @@
 import { apiPath } from "./api";
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Auth';
-import { useSettings } from './SettingsContext';
-import { ArrowLeft, Search, Music, Bookmark, ChevronRight, BookOpen } from 'lucide-react';
+import { ArrowLeft, Search, Music, BookOpen } from 'lucide-react';
 
 export const VocabularyBank = () => {
     const { token, setToken } = useContext(AuthContext);
@@ -21,7 +20,6 @@ export const VocabularyBank = () => {
     const [words, setWords] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isMobile] = useState(window.innerWidth < 768);
-    const [refreshCount, setRefreshCount] = useState(0);
 
     useEffect(() => {
         if (!token) return;
