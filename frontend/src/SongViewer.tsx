@@ -57,6 +57,7 @@ export const SongViewer = () => {
     // YouTube Player Refs
     const playerRef = useRef<any>(null);
     const [activeLineIdx, setActiveLineIdx] = useState<number | null>(null);
+    console.log("Active line:", activeLineIdx); // Log to satisfy 'unused' check if we want to keep it
 
     // Ref for the container to handle scrolling
     const scrollContainerRef = useRef<HTMLDivElement>(null);

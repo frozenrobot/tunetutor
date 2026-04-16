@@ -52,7 +52,7 @@ export const SettingsPage = () => {
         setSuccess("");
         setLoading(true);
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/user/me", {
+            const res = await fetch(apiPath("/api/user/me"), {
                 method: "PUT",
                 headers: { 
                     'Authorization': `Bearer ${token}`,
@@ -62,7 +62,7 @@ export const SettingsPage = () => {
             });
             const data = await res.json();
             if (res.ok) {
-                const emailChanged = data.email !== userData?.email; // This will actually be false if backend didn't update yet
+                // Email change logic handled below
                 // However, our backend returns the current_user object which hasn't changed email yet but has pending_email.
                 // Let's check if the input email is different from current email
                 

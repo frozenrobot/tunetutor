@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { BrowserRouter, Routes, Route, Link, NavLink, Navigate, useNavigate } from 'react-router-dom';
 import { Music, Settings, Search, Trash2, AlertCircle, BarChart3, Layers, Compass, User } from 'lucide-react';
 import { AuthView, AuthContext } from './Auth';
@@ -46,7 +46,7 @@ const Home = () => {
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const { token, setToken } = useContext(AuthContext);
+  const { token } = useContext(AuthContext);
   const navigate = useNavigate();
 
   // Modal State

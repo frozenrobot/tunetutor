@@ -1,5 +1,5 @@
 import { apiPath } from "./api";
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Auth';
 import { useSettings, kanaToRomaji, katakanaToHiragana, hiraganaToKatakana } from './SettingsContext';

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Mail, Lock, User as UserIcon, Eye, EyeOff, Loader2, ArrowLeft, CheckCircle, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Lock, User as UserIcon, ArrowLeft, CheckCircle, AlertTriangle } from 'lucide-react';
 import { apiPath } from './api';
 
 export const AuthContext = React.createContext<{ token: string | null, setToken: any }>({ token: null, setToken: null });
