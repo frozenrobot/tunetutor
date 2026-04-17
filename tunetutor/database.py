@@ -13,7 +13,10 @@ if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
 connect_args = {"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args=connect_args
+    SQLALCHEMY_DATABASE_URL, 
+    connect_args=connect_args,
+    pool_pre_ping=True,
+    pool_recycle=1800  # Recycle connections after 30 minutes to be safe with Supabase
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
