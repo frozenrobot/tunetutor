@@ -154,7 +154,7 @@ export const SongViewer = () => {
         
         const userMessageCount = chatHistory.filter(m => m.role === 'user').length;
         if (userMessageCount >= 10 && !message) {
-            alert("Chat limit reached (10 messages per line). Please restart the chat if you have more questions.");
+            alert("This chat has reached the maximum limit of 20 messages. Please restart the thread if you have more questions.");
             return;
         }
 
@@ -201,7 +201,7 @@ export const SongViewer = () => {
         const llmHistory = [...newHistory, { role: 'user', content: userMessage }];
 
         if (llmHistory.filter(m => m.role === 'user').length > 10) {
-            setChatHistory([...updatedHistory, { role: 'assistant', content: "Limit reached: 10 messages per chat session." }]);
+            setChatHistory([...updatedHistory, { role: 'assistant', content: "This chat has reached the maximum of 20 messages. Please click 'Restart Chat' below to start a fresh thread." }]);
             setChatLoading(false);
             return;
         }
@@ -485,24 +485,33 @@ export const SongViewer = () => {
                                     </div>
                                 )}
 
-                                <form
-                                    style={{ display: 'flex', gap: '0.5rem' }}
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        requestChat(activeLineChatIdx, chatInput);
-                                    }}
-                                >
-                                    <input
-                                        className="glass-input"
-                                        style={{ flex: 1, padding: '0.75rem' }}
-                                        type="text"
-                                        placeholder="Ask a follow-up question..."
-                                        value={chatInput}
-                                        onChange={e => setChatInput(e.target.value)}
-                                        disabled={chatLoading}
-                                    />
-                                    <button className="btn" type="submit" disabled={chatLoading || !chatInput.trim()}>Send</button>
-                                </form>
+                                {chatHistory.length >= 20 ? (
+                                    <div style={{ padding: '1rem', textAlign: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+                                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>This chat is getting too long (20 messages max). To keep the AI focused, please start a fresh thread!</p>
+                                        <button className="btn btn-outline" style={{ margin: '0 auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={refreshChat}>
+                                            <RefreshCw size={16} /> Restart Chat
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <form
+                                        style={{ display: 'flex', gap: '0.5rem' }}
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            requestChat(activeLineChatIdx, chatInput);
+                                        }}
+                                    >
+                                        <input
+                                            className="glass-input"
+                                            style={{ flex: 1, padding: '0.75rem' }}
+                                            type="text"
+                                            placeholder="Ask a follow-up question..."
+                                            value={chatInput}
+                                            onChange={e => setChatInput(e.target.value)}
+                                            disabled={chatLoading}
+                                        />
+                                        <button className="btn" type="submit" disabled={chatLoading || !chatInput.trim()}>Send</button>
+                                    </form>
+                                )}
                                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.5rem', fontStyle: 'italic' }}>
                                     AI is not always accurate.
                                 </p>
